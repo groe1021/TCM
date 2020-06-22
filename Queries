@@ -1,0 +1,216 @@
+select fac.region_name,cli.patientid,sum(cli.HOSP_ADMIT_COUNT),sum(cli.HOSP_READMIT_COUNT),cli.FACILITY_NO, cli.PERIOD_DATE_DIM_SEQ
+from VIEW_DB.VIEW_DB_USR.CLINICAL_INSIGHTS_DQI_MON_DATA_VW cli
+inner join VIEW_DB.VIEW_DB_USR.FACILITY_DIM_VW fac on cli.facility_no = fac.FACILITY_NO
+where fac.region_name like 'Southern Heat Region 03: OPER%'
+and cli.PERIOD_DATE_DIM_SEQ = 20200331
+--and cli.PERIOD_DATE_DIM_SEQ <= 20200131
+and cli.HOSP_ADMIT_COUNT > 0
+and cli.ASSIGNED_FACILITY_FLAG = 1
+and cli.FACILITY_NO in ('05062','05061','05075','06825','11129')
+group by fac.region_name,cli.FACILITY_NO, cli.PATIENTID, cli.PERIOD_DATE_DIM_SEQ
+
+
+select cli.PERIOD_DATE_DIM_SEQ, cli.ASSIGNED_FACILITY_NO, count(distinct cli.PATIENTID)
+from VIEW_DB.VIEW_DB_USR.CLINICAL_INSIGHTS_DQI_MON_DATA_VW cli
+where cli.PERIOD_DATE_DIM_SEQ in (20191231,20200131,201200228,20200331,20200430,20200531)
+and cli.ASSIGNED_FACILITY_NO in 
+(05061
+,11258
+,06825
+,11129
+,05062
+,05075
+)
+group by
+cli.PERIOD_DATE_DIM_SEQ, cli.ASSIGNED_FACILITY_NO
+
+
+
+SELECT distinct hmt.EVENT_OCCURED_FACILITY
+, hmt.patientid
+, hmt.PATIENT_FIRST_NAME
+, hmt.PATIENT_LAST_NAME
+, hmt.admit_date
+,hmt.DISCHARGE_DATE
+FROM VIEW_DB.VIEW_DB_USR.HMT_PATIENT_HOSP_EVENT_PERIOD_RPT_FACT_VW HMT
+WHERE HMT.ADMIT_DATE >= '01-may-2020'
+and HMT.ADMIT_DATE < '01-jul-2020'
+AND HMT.EVENT_OCCURED_FACILITY IN
+( '11258 - PRAIRIEVILLE DIALYSIS'
+ ,'06825 - EAST BATON ROUGE DIALYSIS'
+ ,'05061 - ESSEN LANE DIALYSIS'
+ ,'05062 - MID CITY DIALYSIS'
+ ,'05075 - SCOTLANDVILLE DIALYSIS'
+ ,'11129 - WALKER SOUTH DIALYSIS'
+)
+and hmt.PATIENTID = '1933969'
+
+
+SELECT max(hmt.INSERT_DATE)
+FROM VIEW_DB.VIEW_DB_USR.HMT_PATIENT_HOSP_EVENT_PERIOD_RPT_FACT_VW HMT
+
+select fac.region_name, cli.FACILITY_NO, cli.PERIOD_DATE_DIM_SEQ, cli.ASSIGNED_FACILITY_NO, sum(cli.HOSP_ADMIT_COUNT), sum(cli.HOSP_READMIT_COUNT)
+from VIEW_DB.VIEW_DB_USR.CLINICAL_INSIGHTS_DQI_MON_DATA_VW cli
+inner join VIEW_DB.VIEW_DB_USR.FACILITY_DIM_VW fac on cli.facility_no = fac.FACILITY_NO
+where fac.region_name like 'Southern Heat Region 03: OPER%'
+ and cli.PERIOD_DATE_DIM_SEQ >= 20180131
+ and cli.HOSP_ADMIT_COUNT > 0
+--and cli.PATIENTID = 1741602
+--and cli.FACILITY_NO in ('11258', '06825', '05061', '05062', '05075', '11129')
+AND CLI.ASSIGNED_FACILITY_FLAG = 1
+group by fac.region_name,cli.FACILITY_NO, cli.PERIOD_DATE_DIM_SEQ, cli.ASSIGNED_FACILITY_NO
+
+
+
+select cli.FACILITY_NO, fac.region_name,count(distinct cli.PATIENTID), cli.PERIOD_DATE_DIM_SEQ
+from VIEW_DB.VIEW_DB_USR.CLINICAL_INSIGHTS_DQI_MON_DATA_VW cli
+inner join VIEW_DB.VIEW_DB_USR.FACILITY_DIM_VW fac on cli.facility_no = fac.FACILITY_NO
+where fac.region_name like 'Southern Heat Region 03: OPER%'
+and cli.PERIOD_DATE_DIM_SEQ in (20190331,20190430,20190531,20200331,20200430,20200531)
+--and cli.PERIOD_DATE_DIM_SEQ <= 20200131
+--and cli.HOSP_ADMIT_COUNT > 0
+and cli.ASSIGNED_FACILITY_FLAG = 1
+group by fac.region_name,cli.FACILITY_NO, cli.PERIOD_DATE_DIM_SEQ
+
+
+
+Select *
+from VIEW_DB.VIEW_DB_USR.CLINICAL_INSIGHTS_DQI_MON_DATA_VW cli
+where cli.PATIENTID = 2228174
+and cli.PERIOD_DATE_DIM_SEQ = 202005313
+
+
+
+
+SELECT DISTINCT 
+               --Patient and record information:
+			   				  fac.FACILITY_NO,
+                              pat.PERIOD_DATE_DIM_SEQ, 
+                              pat.RULE_SET_DIM_SEQ, --28 = monthly; 29 = month-to-date
+                              pat.PATIENTID, 
+                              pat.PATIENT_FIRST_NAME, 
+                              pat.PATIENT_LAST_NAME, 
+                              pat.FACILITY_DIM_SEQ, --Facility at which event occurred
+                              pat.HMT_MODALITY, 
+                              pat.DQI_MODALITY, 
+               --Missed tx counts for current report period:
+                              pat.ETNP_MISSED_TX_COUNT, 
+                              pat.ETNP_NO_SHOW_COUNT, 
+                              pat.ETNP_HOSP_COUNT, 
+                              pat.ETNP_RESCHEDULE_COUNT, 
+                              pat.ETNP_TREATED_ELSEWHERE_COUNT, 
+                              pat.PRESC_TX_CNT, 
+               --Admit/readmit counts for current report period:
+                              pat.HOSP_ADMIT_COUNT, 
+                              pat.HOSP_READMIT_COUNT,
+                              pat.OUTPATIENT_EVENTS_COUNT, --Outpatients include missed txs due to outpatient ER/hospital VISIT/medical appt
+               --Most recent event details (includes only events in current report period):
+                              pat.RECENT_MISSED_TX_EVENT_DATE, RECENT_MISSED_TX_REASON,   --Most recent missed tx event details
+                              pat.RECENT_HOSP_EVENT_DATE, RECENT_HOSP_REASON,              --Most recent hospitalization event details
+                              pat.RECENT_READMIT_EVENT_DATE, RECENT_READMIT_REASON,       --Most recent readmit event details
+                              pat.RECENT_OUTPATIENT_EVENT, RECENT_OUTPATIENT_EVENT_DATE, RECENT_OUTPATIENT_REASON --Most recent outpatient event details
+               
+FROM VIEW_DB..HMT_PATIENT_PERIOD_SUMMARY_RPT_FACT_VW pat
+left join VIEW_DB.VIEW_DB_USR.FACILITY_DIM_VW fac on fac.FACILITY_DIM_SEQ = pat.FACILITY_DIM_SEQ
+WHERE pat.RULE_SET_DIM_SEQ = 28 --28 = monthly; 29 = month-to-date
+and pat.patientid = 1562995
+
+and pat.PERIOD_DATE_DIM_SEQ = 20200531
+
+
+SELECT distinct hmt.EVENT_OCCURED_FACILITY
+, hmt.patientid
+, hmt.PATIENT_FIRST_NAME
+, hmt.PATIENT_LAST_NAME
+, hmt.admit_date
+,hmt.INSERT_DATE
+,hmt.DISCHARGE_DATE
+FROM VIEW_DB.VIEW_DB_USR.HMT_PATIENT_HOSP_EVENT_PERIOD_RPT_FACT_VW HMT
+WHERE HMT.ADMIT_DATE >= '01-mar-2020'
+and HMT.ADMIT_DATE < '31-may-2020'
+AND HMT.EVENT_OCCURED_FACILITY IN
+( '11258 - PRAIRIEVILLE DIALYSIS'
+ ,'06825 - EAST BATON ROUGE DIALYSIS'
+ ,'05061 - ESSEN LANE DIALYSIS'
+ ,'05062 - MID CITY DIALYSIS'
+ ,'05075 - SCOTLANDVILLE DIALYSIS'
+ ,'11129 - WALKER SOUTH DIALYSIS'
+)
+and hmt.PATIENTID = 1741602
+
+
+SELECT * 
+/*hmt.EVENT_OCCURED_FACILITY
+, hmt.patientid
+, hmt.PATIENT_FIRST_NAME
+, hmt.PATIENT_LAST_NAME
+, hmt.admit_date*/
+FROM VIEW_DB.VIEW_DB_USR.HMT_PATIENT_HOSP_EVENT_PERIOD_RPT_FACT_VW HMT
+WHERE HMT.ADMIT_DATE >= '01-mar-2020'
+and HMT.ADMIT_DATE < '01-may-2020'
+AND HMT.EVENT_OCCURED_FACILITY IN
+( '11258 - PRAIRIEVILLE DIALYSIS'
+ ,'06825 - EAST BATON ROUGE DIALYSIS'
+ ,'05061 - ESSEN LANE DIALYSIS'
+ ,'05062 - MID CITY DIALYSIS'
+ ,'05075 - SCOTLANDVILLE DIALYSIS'
+ ,'11129 - WALKER SOUTH DIALYSIS'
+)
+and patientid = 2069054
+
+
+select fac.region_name,cli.PATIENTID,cli.FACILITY_NO, cli.PERIOD_DATE_DIM_SEQ, cli.ASSIGNED_FACILITY_NO, sum(cli.HOSP_ADMIT_COUNT), sum(cli.HOSP_READMIT_COUNT)
+from VIEW_DB.VIEW_DB_USR.CLINICAL_INSIGHTS_DQI_MON_DATA_VW cli
+inner join VIEW_DB.VIEW_DB_USR.FACILITY_DIM_VW fac on cli.facility_no = fac.FACILITY_NO
+where 
+ cli.PERIOD_DATE_DIM_SEQ = 20190731
+ --and cli.HOSP_ADMIT_COUNT > 0
+AND CLI.ASSIGNED_FACILITY_FLAG = 1
+
+and cli.PATIENTID in (
+ '1372496'
+,'1655425'
+,'1737187'
+,'1800221'
+,'1865573'
+,'1956942'
+,'1981654'
+,'1981852'
+,'2033987'
+,'2033987'
+,'2126268'
+,'2165688'
+,'2177497'
+,'2212306'
+,'2221507'
+,'1413026'
+,'1862050'
+,'1862050'
+,'1876434'
+,'1902633'
+,'1953261'
+,'1981654'
+,'1995728'
+,'2000242'
+,'2033562'
+,'2050756'
+,'2069054'
+,'2085354'
+,'2085354'
+,'2181925'
+,'2217499'
+,'1258212'
+,'1482465'
+,'1562995'
+,'1662966'
+,'1933969'
+,'1970773'
+,'2075607'
+,'2085489'
+,'2096851'
+,'2135628'
+,'2165688'
+,'2204301'
+,'1741602'
+)
+group by fac.region_name,cli.PATIENTID,cli.FACILITY_NO, cli.PERIOD_DATE_DIM_SEQ, cli.ASSIGNED_FACILITY_NO
